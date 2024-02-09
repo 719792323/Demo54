@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace写对应mapper接口的全路径-->
+<mapper namespace="open.demo.task2.dao.Task2Dao">
+
+    <select id="getAllPeople" resultType="People">
+        select *
+        from people;
+    </select>
+    <select id="getPeopleById" resultType="People">
+        select *
+        from people
+        where id = #{id}
+    </select>
+
+</mapper>
