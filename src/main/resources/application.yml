@@ -16,10 +16,7 @@ mybatis:
 #    url:
 #    username:
 #    password:
+#  redis:
+#    host:
 
-
-#spring:
-#    redis:
-#      host:
-#      password:
 
