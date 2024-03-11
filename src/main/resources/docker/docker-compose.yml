@@ -1,0 +1,89 @@
+version: '3.2'
+
+networks:
+  demo54:
+    driver: bridge
+
+
+services:
+  mysql:
+    image: mysql:8.0.18
+    container_name: mysql
+    volumes:
+      - ./data/db_data:/var/lib/mysql
+      - ./config/mysql:/docker-entrypoint-initdb.d/
+    command: [
+      '--character-set-server=utf8mb4',
+      '--collation-server=utf8mb4_unicode_ci',
+      '--default-time-zone=+8:00'
+    ]
+    environment:
+      MYSQL_ROOT_PASSWORD: 123456
+    ports:
+      - 3306:3306
+    networks:
+      - demo54
+  mysqld-exporter:
+    image: prom/mysqld-exporter
+    container_name: mysqld-exporter
+    ports:
+      - 3307:9104
+    environment:
+      - DATA_SOURCE_NAME=root:123456@tcp(mysql:3306)/
+    volumes:
+       - ./config/mysql-exporter/my.cnf:/etc/mysql/my.cnf
+    command:
+      - --config.my-cnf=/etc/mysql/my.cnf
+    depends_on:
+      - mysql
+    networks:
+      - demo54
+  redis:
+    container_name: redis
+    image: redislabs/redismod:latest
+    ports:
+      - 6379:6379
+    networks:
+      - demo54
+  redis-exporter:
+    image: oliver006/redis_exporter
+    command: -redis.addr redis://redis:6379
+    ports:
+      - 6380:9121
+    networks:
+      - demo54
+    depends_on:
+      - redis
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - --path.procfs=/host/proc
+      - --path.rootfs=/rootfs
+      - --path.sysfs=/host/sys
+      - --collector.filesystem.mount-points-exclude=^/(sys|proc|dev|host|etc)($$|/)
+    ports:
+      - 9101:9100
+    networks:
+      - demo54
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --web.enable-lifecycle
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    ports:
+      - 9090:9090
+    networks:
+      - demo54

@@ -2,6 +2,12 @@ server:
   servlet:
     context-path: /
   port: 80
+  tomcat:
+    mbeanregistry:
+      enabled: true
+spring:
+  application:
+    name: Demo54
 
 mybatis:
   mapper-locations: classpath:mappers/*xml
@@ -9,8 +15,24 @@ mybatis:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    export:
+      prometheus:
+        enabled: true
+      jmx:
+        enabled: true
 
-#spring:
+
+
+
+  #spring:
 #  datasource:
 #    driver-class-name: com.mysql.cj.jdbc.Driver
 #    url:
@@ -18,5 +40,6 @@ mybatis:
 #    password:
 #  redis:
 #    host:
+
 
 
