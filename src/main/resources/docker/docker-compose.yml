@@ -4,7 +4,6 @@ networks:
   demo54:
     driver: bridge
 
-
 services:
   mysql:
     image: mysql:8.0.18
@@ -31,7 +30,7 @@ services:
     environment:
       - DATA_SOURCE_NAME=root:123456@tcp(mysql:3306)/
     volumes:
-       - ./config/mysql-exporter/my.cnf:/etc/mysql/my.cnf
+      - ./config/mysql-exporter/my.cnf:/etc/mysql/my.cnf
     command:
       - --config.my-cnf=/etc/mysql/my.cnf
     depends_on:
@@ -70,11 +69,49 @@ services:
       - 9101:9100
     networks:
       - demo54
+  rmqnamesrv:
+    image: apacherocketmq/rocketmq:4.5.0
+    container_name: rmqnamesrv
+    ports:
+      - 9876:9876
+    command: sh mqnamesrv
+    networks:
+      - demo54
+  rmqbroker:
+    image: apacherocketmq/rocketmq:4.5.0
+    container_name: rmqbroker
+    ports:
+      - 10909:10909
+      - 10911:10911
+      - 10912:10912
+    volumes:
+      - ./config/rocketmq/broker.conf:/home/rocketmq/rocketmq-4.5.0/conf/broker.conf
+    command: sh mqbroker -n rmqnamesrv:9876 -c ../conf/broker.conf
+    depends_on:
+      - rmqnamesrv
+    environment:
+      - JAVA_HOME=/usr/lib/jvm/jre
+    networks:
+      - demo54
+  rmq-exporter:
+    image: admin4j/rocketmq-exporter
+    container_name: rmq-exporter
+    command:
+      - /bin/sh
+      -  -c
+      - /usr/bin/java -Djava.security.egd=file:/dev/./urandom $JVM_OPT -jar quickstart.jar --rocketmq.config.namesrvAddr="rmqnamesrv:9876"
+    ports:
+      - 5557:5557
+    networks:
+      - demo54
+    depends_on:
+      - rmqnamesrv
   prometheus:
     image: prom/prometheus:latest
     container_name: prometheus
     volumes:
       - ./config/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /etc/hosts:/etc/hosts
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --storage.tsdb.path=/prometheus
@@ -87,3 +124,15 @@ services:
       - 9090:9090
     networks:
       - demo54
+  grafana:
+    image: grafana/grafana:9.3.2
+    container_name: grafana
+    volumes:
+      - ./config/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./config/grafana/dashboards:/etc/grafana/provisioning/dashboards
+    ports:
+      - 3000:3000
+    networks:
+      - demo54
+    depends_on:
+      - prometheus

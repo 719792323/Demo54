@@ -18,7 +18,7 @@ public class Task3Controller {
 
     /**
      * 接口1：直接写数据进mysql
-     * 任务1：使用jmeter测试该接口性能（测试要求拉满mysql），吞吐量：557，请求总数：50148，平均延迟：43
+     * 任务1：使用jmeter测试该接口性能（测试要求拉满mysql）
      */
     @RequestMapping(value = "/api1")
     public ResponseBean api1() {
@@ -26,7 +26,6 @@ public class Task3Controller {
         service.task1(people);
         return ResponseBean.success(people, "");
     }
-
 
 
 }
