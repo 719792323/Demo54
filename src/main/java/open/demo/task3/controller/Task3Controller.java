@@ -27,5 +27,26 @@ public class Task3Controller {
         return ResponseBean.success(people, "");
     }
 
+    /**
+     * 基于线程池，写入mysql
+     *
+     * @return
+     */
+    @RequestMapping(value = "/api2")
+    public ResponseBean api2() {
+        People people = new People(null, UUID.randomUUID().toString(), 0);
+        service.task2(people);
+        return ResponseBean.success(people, "");
+    }
+
+    /**
+     * 基于线程池搭配消息队列，写入mysql
+     */
+    @RequestMapping(value = "/api3")
+    public ResponseBean api3() {
+        People people = new People(null, UUID.randomUUID().toString(), 0);
+        service.task3(people);
+        return ResponseBean.success(people, "");
+    }
 
 }
