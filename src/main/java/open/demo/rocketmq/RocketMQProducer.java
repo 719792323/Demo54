@@ -5,17 +5,18 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.rocketmq.spring.core.RocketMQTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-@Component
+//@Component
 @Slf4j
 public class RocketMQProducer {
-    @Resource
+//    @Resource
     private RocketMQTemplate rocketMQTemplate;
 
-    @Resource
+//    @Resource
     private ObjectMapper mapper;
 
     // 同步发送消息

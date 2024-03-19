@@ -12,5 +12,6 @@ public class People {
     private Integer id;
     private String name;
     private Integer age;
-    public static final People NULL=new People();
+    private String phone;
+    public static final People NULL = new People();
 }

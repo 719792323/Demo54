@@ -1,0 +1,7 @@
+process_names:
+  - name: mysqld
+    cmdline:
+      - mysqld
+  - name: redis
+    cmdline:
+      - redis

@@ -8,6 +8,7 @@ import open.demo.common.pojo.People;
 import open.demo.rocketmq.RocketMQProducer;
 import open.demo.task3.dao.Task3Dao;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -25,7 +26,7 @@ public class Task3Service {
 
     private final ThreadPoolExecutor executorWithoutMessage;
 
-    @Autowired
+    @Autowired(required = false)
     private RocketMQProducer producer;
 
     @Data

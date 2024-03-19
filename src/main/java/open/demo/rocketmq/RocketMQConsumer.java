@@ -12,16 +12,16 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 
-@Component
-@RocketMQMessageListener(consumerGroup = "demo54_consumer1", topic = "demo54")
-@Profile("!test")
+//@Component
+//@RocketMQMessageListener(consumerGroup = "demo54_consumer1", topic = "demo54")
+//@Profile({"!test"})
 @Slf4j
 public class RocketMQConsumer implements RocketMQListener<String> {
 
-    @Resource
+//    @Resource
     private Task3Service service;
 
-    @Resource
+//    @Resource
     private ObjectMapper mapper;
 
     @Override

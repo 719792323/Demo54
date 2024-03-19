@@ -22,7 +22,7 @@ public class Task3Controller {
      */
     @RequestMapping(value = "/api1")
     public ResponseBean api1() {
-        People people = new People(null, UUID.randomUUID().toString(), 0);
+        People people = new People(null, UUID.randomUUID().toString(), 0, null);
         service.task1(people);
         return ResponseBean.success(people, "");
     }
@@ -34,7 +34,7 @@ public class Task3Controller {
      */
     @RequestMapping(value = "/api2")
     public ResponseBean api2() {
-        People people = new People(null, UUID.randomUUID().toString(), 0);
+        People people = new People(null, UUID.randomUUID().toString(), 0, null);
         service.task2(people);
         return ResponseBean.success(people, "");
     }
@@ -44,7 +44,7 @@ public class Task3Controller {
      */
     @RequestMapping(value = "/api3")
     public ResponseBean api3() {
-        People people = new People(null, UUID.randomUUID().toString(), 0);
+        People people = new People(null, UUID.randomUUID().toString(), 0, null);
         service.task3(people);
         return ResponseBean.success(people, "");
     }

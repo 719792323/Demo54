@@ -20,21 +20,21 @@ import org.springframework.test.context.junit4.SpringRunner;
 import java.util.List;
 import java.util.concurrent.SynchronousQueue;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = Demo54.class, args = {"--spring.profiles.active=local"})
-@ActiveProfiles("test")
+//@RunWith(SpringRunner.class)
+//@SpringBootTest(classes = Demo54.class, args = {"--spring.profiles.active=local"})
+//@ActiveProfiles("test")
 public class TestRocketMQ {
-    @Autowired
+//    @Autowired
     private RocketMQProducer producer;
 
     private DefaultMQPushConsumer consumer;
 
-    @Value("${rocketmq.name-server}")
+//    @Value("${rocketmq.name-server}")
     private String nameServer;
 
     private SynchronousQueue<List<MessageExt>> syncQueue = new SynchronousQueue<>();
 
-    @Autowired
+//    @Autowired
     private ObjectMapper mapper;
 
     @Before

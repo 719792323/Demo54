@@ -11,6 +11,7 @@ import com.alibaba.nacos.api.naming.listener.EventListener;
 import com.alibaba.nacos.api.naming.listener.NamingEvent;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.FutureTask;
 
 @Component
+@Profile("skywalking")
 public class NacosMain {
     @Value("${nacos.serverAddr}")
     private String serverAddr;
