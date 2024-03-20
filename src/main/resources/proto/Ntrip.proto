@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+option java_package = "open.demo.common.pojo";
+option java_outer_classname = "NtripDataProto";
+
+
+message NtripData{
+  int32 messsageType = 1;
+  int32 satelliteId = 2;
+  double orbitCorrection = 3;
+  double clockCorrection = 4;
+  double phaseCorrection = 5;
+  double atmosphericCorrection = 6;
+}

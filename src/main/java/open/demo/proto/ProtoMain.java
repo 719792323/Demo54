@@ -1,28 +1,24 @@
 package open.demo.proto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import open.demo.common.pojo.People;
-import open.demo.common.pojo.PeopleProto;
+import open.demo.common.pojo.NtripData;
+import open.demo.common.pojo.NtripDataProto;
 
-import java.io.ByteArrayOutputStream;
 
 public class ProtoMain {
     public static void main(String[] args) throws Exception {
-        People people = new People(1, "sj", 10, "13870724913");
+        NtripData ntripData = new NtripData();
+        ntripData.setMessageType(1301);
+        ntripData.setSatelliteId(10);
+        ntripData.setPhaseCorrection(0.5);
         ObjectMapper mapper = new ObjectMapper();
-        String json = mapper.writeValueAsString(people);
-        System.out.println(json);
+        String json = mapper.writeValueAsString(ntripData);
         double len1 = json.getBytes().length;
-        PeopleProto.People protoPeople = PeopleProto.People.newBuilder()
-                .setId(people.getId())
-                .setName(people.getName())
-                .setAge(people.getAge())
-                .setPhone(people.getPhone()).build();
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        protoPeople.writeTo(outputStream);
-        double len2 = outputStream.toByteArray().length;
-        System.out.println(String.format("len1:%s,len2:%s,len1/len2:%s", len1, len2, len1 / len2));
-        PeopleProto.People parseFrom = PeopleProto.People.parseFrom(outputStream.toByteArray());
-        System.out.println(parseFrom);
+        NtripDataProto.NtripData ntripDataProto = NtripDataProto.NtripData.newBuilder()
+                .setMesssageType(ntripData.getMessageType())
+                .setSatelliteId(ntripData.getSatelliteId())
+                .setPhaseCorrection(ntripData.getPhaseCorrection()).build();
+        double len2 = ntripDataProto.toByteArray().length;
+        System.out.println(String.format("原长度:%s,压缩长度:%s,压缩比:%s", len1, len2, len1 / len2));
     }
 }
