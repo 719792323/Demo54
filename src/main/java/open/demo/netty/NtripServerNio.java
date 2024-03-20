@@ -1,6 +1,7 @@
 package open.demo.netty;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -8,10 +9,14 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.CharsetUtil;
 import lombok.extern.slf4j.Slf4j;
 import open.demo.common.pojo.NtripData;
 import open.demo.common.pojo.NtripDataProto;
+
+import java.io.IOException;
+import java.util.List;
 
 public class NtripServerNio {
     public static void main(String[] args) throws Exception {
@@ -36,32 +41,62 @@ public class NtripServerNio {
 }
 
 @Slf4j
-class JsonDecoder extends SimpleChannelInboundHandler {
-    private static ObjectMapper mapper = new ObjectMapper();
+abstract class AbstractDecoder extends ByteToMessageDecoder {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext context, Object o) throws Exception {
-        ByteBuf byteBuf = (ByteBuf) o;
-        int len = byteBuf.readableBytes();
-        byte[] bytes = new byte[len];
-        byteBuf.readBytes(bytes, 0, len);
-        NtripData ntripData = mapper.readValue(bytes, NtripData.class);
-        log.info("ntripDataJson:{}", ntripData);
+    protected void decode(ChannelHandlerContext context, ByteBuf in, List<Object> list) throws Exception {
+        //长度信息是否可读
+        int availableBytes = in.readableBytes();
+        if (availableBytes < 4) {
+            return;
+        }
+
+        in.markReaderIndex();
+        int payloadLength = in.readInt();
+        //数据是否到齐
+        if (in.readableBytes() < payloadLength) {
+            in.resetReaderIndex();//重设readerIndex到markReaderIndex
+            return;
+        }
+
+        byte[] payload = new byte[payloadLength];
+        in.readBytes(payload);
+        doRead(payload);
         context.channel().writeAndFlush(Unpooled.copiedBuffer("bye", CharsetUtil.UTF_8));
+    }
+
+    protected abstract void doRead(byte[] data);
+}
+
+
+@Slf4j
+class JsonDecoder extends AbstractDecoder {
+    private static ObjectMapper mapper = new ObjectMapper();
+
+
+    @Override
+    protected void doRead(byte[] data) {
+        NtripData ntripData = null;
+        try {
+            ntripData = mapper.readValue(data, NtripData.class);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        log.info("ntripDataJson:{}", ntripData);
     }
 }
 
 @Slf4j
-class ProtoDecoder extends SimpleChannelInboundHandler {
+class ProtoDecoder extends AbstractDecoder {
 
     @Override
-    protected void channelRead0(ChannelHandlerContext context, Object o) throws Exception {
-        ByteBuf byteBuf = (ByteBuf) o;
-        int len = byteBuf.readableBytes();
-        byte[] bytes = new byte[len];
-        byteBuf.readBytes(bytes, 0, len);
-        NtripDataProto.NtripData ntripData = NtripDataProto.NtripData.parseFrom(bytes);
+    protected void doRead(byte[] data) {
+        NtripDataProto.NtripData ntripData = null;
+        try {
+            ntripData = NtripDataProto.NtripData.parseFrom(data);
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
         log.info("ntripDataProto:{}", ntripData);
-        context.channel().writeAndFlush(Unpooled.copiedBuffer("bye", CharsetUtil.UTF_8));
     }
 }

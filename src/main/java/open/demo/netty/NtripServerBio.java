@@ -3,6 +3,8 @@ package open.demo.netty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 @Slf4j
 public class NtripServerBio {
+    static AtomicInteger threadsCount = new AtomicInteger(0);
 
     public static void main(String[] args) throws IOException {
         ServerSocket serverSocket = new ServerSocket(8088);
@@ -30,6 +33,7 @@ public class NtripServerBio {
                 try {
                     socket = serverSocket.accept();
                     NtripBioTask task = new NtripBioTask(socket);
+                    threadsCount.getAndIncrement();
                     new Thread(workThreadGroup, task, String.format("worker-%s", ids.getAndIncrement())).start();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
@@ -39,11 +43,11 @@ public class NtripServerBio {
         bossThread.start();
         while (true) {
             try {
-                Thread.sleep(1000);
+                Thread.sleep(3000);
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+//                throw new RuntimeException(e);
             }
-            log.info("active threads:{}", workThreadGroup.activeCount());
+            log.info("active threads:{}", threadsCount.get());
         }
     }
 
@@ -61,27 +65,35 @@ class NtripBioTask implements Runnable {
         try {
             readAndWrite();
         } catch (Exception e) {
-            e.printStackTrace();
+//            e.printStackTrace();
         } finally {
+            NtripServerBio.threadsCount.decrementAndGet();
             log.info("socket close:{}", socket);
         }
     }
 
     private void readAndWrite() throws Exception {
-        try (InputStream inputStream = socket.getInputStream()) {
-            byte[] bytes = new byte[1024];
-            while (true) {
-                int len = inputStream.read(bytes);
-                byte[] data = new byte[len];
-                System.arraycopy(bytes, 0, data, 0, len);
-                readJson(data);
-//            readProto(data);
-                try (OutputStream outputStream = socket.getOutputStream()) {
-                    outputStream.write("bye".getBytes());
-                    outputStream.flush();
+        byte[] bytes = new byte[1024];
+        InputStream inputStream = socket.getInputStream();
+        OutputStream outputStream = socket.getOutputStream();
+        ByteBuf buffer = Unpooled.buffer(1024);
+        while (true) {
+            int len = inputStream.read(bytes);
+            buffer.writeBytes(bytes, 0, len);
+            if (buffer.readableBytes() >= 4) {
+                int payLoadLength = buffer.readInt();
+                if (buffer.readableBytes() >= payLoadLength) {
+                    byte[] data = new byte[payLoadLength];
+                    buffer.readBytes(data);
+                    readJson(data);
+//                    readProto(data);
                 }
             }
+            outputStream.write("bye".getBytes());
+            outputStream.flush();
+            buffer.clear();
         }
+
     }
 
     private void readJson(byte[] data) throws Exception {
