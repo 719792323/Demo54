@@ -11,6 +11,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.util.CharsetUtil;
+
 import lombok.extern.slf4j.Slf4j;
 import open.demo.common.pojo.NtripData;
 import open.demo.common.pojo.NtripDataProto;
@@ -21,7 +22,7 @@ import java.util.List;
 public class NtripServerNio {
     public static void main(String[] args) throws Exception {
         EventLoopGroup bossGroup = new NioEventLoopGroup(1);
-        EventLoopGroup workerGroup = new NioEventLoopGroup();
+        EventLoopGroup workerGroup = new NioEventLoopGroup(args.length >= 1 ? Integer.parseInt(args[0]) : 0);
         ServerBootstrap serverBootstrap = new ServerBootstrap()
                 .group(bossGroup, workerGroup)
                 .channel(NioServerSocketChannel.class)
@@ -44,7 +45,7 @@ public class NtripServerNio {
 abstract class AbstractDecoder extends ByteToMessageDecoder {
 
     @Override
-    protected void decode(ChannelHandlerContext context, ByteBuf in, List<Object> list) throws Exception {
+    protected void decode(ChannelHandlerContext context, ByteBuf in, List<Object> list) {
         //长度信息是否可读
         int availableBytes = in.readableBytes();
         if (availableBytes < 4) {
@@ -62,7 +63,7 @@ abstract class AbstractDecoder extends ByteToMessageDecoder {
         byte[] payload = new byte[payloadLength];
         in.readBytes(payload);
         doRead(payload);
-        context.channel().writeAndFlush(Unpooled.copiedBuffer("bye", CharsetUtil.UTF_8));
+        context.channel().writeAndFlush(Unpooled.wrappedBuffer("bye".getBytes()));
     }
 
     protected abstract void doRead(byte[] data);
