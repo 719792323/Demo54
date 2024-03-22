@@ -14,4 +14,10 @@ public class People {
     private Integer age;
     private String phone;
     public static final People NULL = new People();
+
+    public People(Integer id, String name, Integer age) {
+        this.id = id;
+        this.name = name;
+        this.age = age;
+    }
 }

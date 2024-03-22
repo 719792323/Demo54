@@ -22,7 +22,7 @@ public class TestGuava {
 
     @Test
     public void testSet() {
-        People people = new People(1, "sj", 10);
+        People people = new People(1, "sj", 10,null);
         cache.put("1", people);
         Assert.assertEquals(people, cache.getIfPresent("1"));
     }

@@ -17,13 +17,13 @@ public class TestJackson {
 
     @Test
     public void test1() throws Exception {
-        People sj = new People(1, "sj", 10);
+        People sj = new People(1, "sj", 10, null);
         Assert.assertEquals("{\"id\":1,\"name\":\"sj\",\"age\":10}", mapper.writeValueAsString(sj));
     }
 
     @Test
     public void test2() throws Exception {
-        People sj = new People(1, "sj", 10);
+        People sj = new People(1, "sj", 10, null);
         String json = mapper.writeValueAsString(sj);
         People people = mapper.readValue(json, People.class);
         Assert.assertEquals(sj, people);
