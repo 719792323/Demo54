@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -85,6 +86,7 @@ public class NtripClient {
     //完成测试次数:384161,请求延迟:6.40255
     //完成测试次数:3237188,请求延迟:53.953
     public static void main(String[] args) throws Exception {
+
         int socketSize = 50000;
         for (int i = 0; i < socketSize; i++) {
             sockets.add(new Socket("localhost", 8088));
