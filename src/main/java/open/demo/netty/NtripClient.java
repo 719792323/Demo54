@@ -35,6 +35,9 @@ public class NtripClient {
     static int port = 8088;
     static int threadNums = 200;
     static int testTime = 60;
+    static int socketNums = 2000;
+    static List<Socket> sockets = new ArrayList<>();
+    static List<ReentrantLock> locks = new ArrayList<>();
 
     static void writeAndRead(Socket socket, byte[] data, ByteBuf buffer) {
         try {
@@ -91,7 +94,7 @@ public class NtripClient {
         }
     }
 
-    static void socketClient() throws Exception {
+    static void oneThreadOneSocket() throws Exception {
         Thread[] threads = new Thread[threadNums];
         for (int i = 0; i < threadNums; i++) {
             threads[i] = new Thread(() -> {
@@ -101,6 +104,7 @@ public class NtripClient {
                     try {
                         writeAndRead(socket, getJsonData(), buffer);
                         buffer.clear();
+                        //模拟随机断开
                         if (random.nextInt(100) > 95) {
                             socket.close();
                             socket = getSocket();
@@ -124,14 +128,41 @@ public class NtripClient {
         log.info("完成测试次数:{},请求延迟:{}", count, count.get() / (double) (testTime * 1000));
     }
 
-    static void nioClient() {
-
+    static void oneThreadManySocket() throws Exception {
+        //创建指定个数sockets
+        for (int i = 0; i < socketNums; i++) {
+            sockets.add(getSocket());
+            locks.add(new ReentrantLock());
+        }
+        Thread[] threads = new Thread[threadNums];
+        for (int i = 0; i < threadNums; i++) {
+            threads[i] = new Thread(() -> {
+                ByteBuf buffer = Unpooled.buffer(1024);
+                Socket socket = getSocket();
+                while (!stop) {
+                    int index = random.nextInt(socketNums);
+                    if (locks.get(index).tryLock()) {
+                        try {
+                            writeAndRead(socket, getJsonData(), buffer);
+                            buffer.clear();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        } finally {
+                            locks.get(index).unlock();
+                        }
+                    }
+                }
+            });
+            threads[i].setDaemon(true);
+            threads[i].start();
+        }
+        TimeUnit.SECONDS.sleep(testTime);
+        stop = true;
+        log.info("完成测试次数:{},请求延迟:{}", count, count.get() / (double) (testTime * 1000));
     }
 
-    //完成测试次数:2623951,请求延迟:43.73245
-    //完成测试次数:2402152,请求延迟:40.035583333333335
     public static void main(String[] args) throws Exception {
-        socketClient();
+
     }
 }
 

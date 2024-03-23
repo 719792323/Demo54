@@ -40,6 +40,7 @@ public class Task3Service {
         }
     }
 
+    //初始化两个线程池
     public Task3Service() {
         executorWithoutMessage = new ThreadPoolExecutor(12, 24, 60,
                 TimeUnit.SECONDS, new ArrayBlockingQueue<>(10000), new ThreadPoolExecutor.AbortPolicy());
@@ -49,16 +50,16 @@ public class Task3Service {
             producer.sendMessage("demo54", ((PeopleTask) r).getPeople());
         });
     }
-
+    //直接写数据库
     public void task1(People people) {
         task3Dao.insertPeople(people);
     }
 
-
+    //不搭配消息队列，直接快速失败
     public void task2(People people) {
         executorWithoutMessage.execute(new PeopleTask(people));
     }
-
+    //失败后使用消息队列
     public void task3(People people) {
         executorWithMessage.execute(new PeopleTask(people));
     }

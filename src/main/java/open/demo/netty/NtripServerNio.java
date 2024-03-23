@@ -80,10 +80,10 @@ class JsonDecoder extends AbstractDecoder {
         NtripData ntripData = null;
         try {
             ntripData = mapper.readValue(data, NtripData.class);
+            log.info("ntripDataJson:{}", ntripData);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        log.info("ntripDataJson:{}", ntripData);
     }
 }
 
@@ -95,9 +95,9 @@ class ProtoDecoder extends AbstractDecoder {
         NtripDataProto.NtripData ntripData = null;
         try {
             ntripData = NtripDataProto.NtripData.parseFrom(data);
+            log.info("ntripDataProto:{}", ntripData);
         } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        log.info("ntripDataProto:{}", ntripData);
     }
 }

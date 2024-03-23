@@ -22,7 +22,7 @@ import java.util.concurrent.Executors;
 @Slf4j
 public class NtripServerBio {
 
-    public static void main(String[] args) throws Exception {
+    public static void threadPoolForSocket(String args[]) throws Exception {
         ServerSocket serverSocket = null;
         ExecutorService service = Executors.newFixedThreadPool(args.length > 0 ? Integer.parseInt(args[0]) : Runtime.getRuntime().availableProcessors() * 2);
         try {
@@ -40,6 +40,29 @@ public class NtripServerBio {
             }
             service.shutdownNow();
         }
+    }
+
+    public static void oneThreadOneSocket(String args[]) throws Exception {
+        ServerSocket serverSocket = null;
+        try {
+            serverSocket = new ServerSocket(8088);
+            while (true) {
+                Socket socket = serverSocket.accept();
+                NtripBioTask ntripBioTask = new NtripBioTask(socket);
+                //一个Socket启动一个线程
+                new Thread(ntripBioTask).start();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } finally {
+            if (serverSocket != null) {
+                serverSocket.close();
+            }
+        }
+    }
+
+    public static void main(String[] args) throws Exception {
+        threadPoolForSocket(args);
     }
 
 }
@@ -74,13 +97,13 @@ class NtripBioTask implements Runnable {
         OutputStream outputStream = socket.getOutputStream();
         ByteBuf buffer = Unpooled.buffer(1024);
         int count = 0;
-        while (socket.isConnected() && !socket.isClosed() && count < 10) {
+        while (socket.isConnected() && !socket.isClosed() && count < maxWaitTime) {
             int len = inputStream.read(bytes);
             if (len == -1) {
                 count++;
+                //这里让bio线程阻塞，强行模拟bio的劣势
                 Thread.sleep(random.nextInt(10));
                 continue;
-//                return;
             }
             buffer.writeBytes(bytes, 0, len);
             buffer.markReaderIndex();
@@ -97,12 +120,14 @@ class NtripBioTask implements Runnable {
             buffer.readBytes(data);
             buffer.discardReadBytes();
             readJson(data);
+//            readProto(data);
             outputStream.write("bye".getBytes());
             outputStream.flush();
             buffer.clear();
         }
 
     }
+
 
     private void readJson(byte[] data) throws Exception {
         NtripData ntripData = mapper.readValue(data, NtripData.class);
